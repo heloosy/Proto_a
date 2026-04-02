@@ -8,17 +8,20 @@ async function generateQuickQueryResponse(query, lang) {
     if (!ai) return lang === 'th-TH' ? 'ระบบไม่พร้อมใช้งาน - กรุณาตรวจสอบ API key' : 'AI not initialized. Check GEMINI_API_KEY.';
     try {
         const response = await ai.models.generateContent({
-            model: 'gemini-1.5-flash',
-            systemInstruction: MASTER_PROMPT,
+            model: 'gemini-2.5-flash',
+            systemInstruction: { parts: [{ text: MASTER_PROMPT }] },
             contents: [{ role: 'user', parts: [{ text: query }] }],
             generationConfig: { temperature: 0.7 }
         });
+
+
         return response.text;
 
     } catch (e) {
         console.error("LLM Quick Query Error:", e);
-        return lang === 'th-TH' ? 'ระบบมีปัญหา' : 'System error.';
+        return lang === 'th-TH' ? `ระบบมีปัญหา: ${e.message}` : `System error: ${e.message}`;
     }
+
 }
 
 async function generateDetailedPlanConversation(params, recentUtterance, lang) {
@@ -49,9 +52,11 @@ Output your response in valid JSON format ONLY:
 `;
 
         const response = await ai.models.generateContent({
-            model: 'gemini-1.5-flash',
-            systemInstruction: MASTER_PROMPT,
+            model: 'gemini-2.5-flash',
+            systemInstruction: { parts: [{ text: MASTER_PROMPT }] },
+
             contents: [{ role: 'user', parts: [{ text: contentStr }] }],
+
             generationConfig: { 
                 temperature: 0.7,
                 responseMimeType: "application/json"
@@ -63,8 +68,9 @@ Output your response in valid JSON format ONLY:
         return result;
     } catch (e) {
          console.error("LLM Detailed Plan Error:", e);
-         return { message: 'System error.', updatedParams: params };
+         return { message: `System error: ${e.message}`, updatedParams: params };
     }
+
 }
 
 async function generateVisionDiagnostic(textMsg, hasMedia, lang) {
@@ -75,17 +81,20 @@ async function generateVisionDiagnostic(textMsg, hasMedia, lang) {
             : `[STANDARD TEXT REQUEST]. The user asked: "${textMsg}". Answer in a highly structured, professional format in ${lang === 'th-TH' ? 'Thai' : 'English'}.`;
             
         const response = await ai.models.generateContent({
-            model: 'gemini-1.5-flash',
-            systemInstruction: MASTER_PROMPT,
+            model: 'gemini-2.5-flash',
+            systemInstruction: { parts: [{ text: MASTER_PROMPT }] },
             contents: [{ role: 'user', parts: [{ text: promptParams }] }],
             generationConfig: { temperature: 0.8 }
         });
+
+
         return response.text;
 
     } catch (e) {
         console.error("LLM Vision Error:", e);
-        return 'System Error analyzing input.';
+        return `System Error: ${e.message}`;
     }
+
 }
 
 async function fetchLocalDataMock(location) {
