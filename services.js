@@ -8,12 +8,13 @@ async function generateQuickQueryResponse(query, lang) {
     if (!ai) return lang === 'th-TH' ? 'ระบบไม่พร้อมใช้งาน - กรุณาตรวจสอบ API key' : 'AI not initialized. Check GEMINI_API_KEY.';
     try {
         const response = await ai.models.generateContent({
-
             model: 'gemini-1.5-flash',
-            contents: `The user has called for a quick query. User query: "${query}". Respond highly concisely in ${lang === 'th-TH' ? 'Thai' : 'English'} suitable for Voice IVR. Internalize your confidence score.`,
-            config: { systemInstruction: MASTER_PROMPT, temperature: 0.7 }
+            systemInstruction: MASTER_PROMPT,
+            contents: [{ role: 'user', parts: [{ text: query }] }],
+            generationConfig: { temperature: 0.7 }
         });
         return response.text;
+
     } catch (e) {
         console.error("LLM Quick Query Error:", e);
         return lang === 'th-TH' ? 'ระบบมีปัญหา' : 'System error.';
@@ -49,13 +50,14 @@ Output your response in valid JSON format ONLY:
 
         const response = await ai.models.generateContent({
             model: 'gemini-1.5-flash',
-            contents: contentStr,
-            config: { 
-                systemInstruction: MASTER_PROMPT, 
+            systemInstruction: MASTER_PROMPT,
+            contents: [{ role: 'user', parts: [{ text: contentStr }] }],
+            generationConfig: { 
                 temperature: 0.7,
                 responseMimeType: "application/json"
             }
         });
+
         
         const result = JSON.parse(response.text);
         return result;
@@ -74,10 +76,12 @@ async function generateVisionDiagnostic(textMsg, hasMedia, lang) {
             
         const response = await ai.models.generateContent({
             model: 'gemini-1.5-flash',
-            contents: promptParams,
-            config: { systemInstruction: MASTER_PROMPT, temperature: 0.8 }
+            systemInstruction: MASTER_PROMPT,
+            contents: [{ role: 'user', parts: [{ text: promptParams }] }],
+            generationConfig: { temperature: 0.8 }
         });
         return response.text;
+
     } catch (e) {
         console.error("LLM Vision Error:", e);
         return 'System Error analyzing input.';
